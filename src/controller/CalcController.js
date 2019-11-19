@@ -10,6 +10,7 @@ class CalcController {
         this._locale = 'pt-BR';
         this.initialize();
         this.initButtonsEvents();
+        this.initKeyboard();
     }
     initialize() {
         this.setDisplayDateTime();
@@ -116,9 +117,33 @@ class CalcController {
                 this.setLastNumberToDisplay();
             }
         }
-    }  
+    }
+    clearAll() {
+        this._operation = [];
+        this._lastNumber = '';
+        this._lastOperator = '';
+        this.setLastNumberToDisplay();
+    }
+    clearEntry() {
+        this._operation.pop();
+        this.setLastNumberToDisplay();
+    }
     setError() {
         this.displayCalc = "Error";
+    }
+    addDot() {
+        let lastOperation = this.getLastOperation();
+        if(typeof lastOperation === 'string' && lastOperation.split('').indexOf('.') > -1) {
+            return;
+        }
+
+        if(this.isOperator(lastOperation) || !lastOperation) {
+            this.pushOperation('0.');
+        } else {
+            this.setLastOperation(lastOperation.toString() + '.');
+        }
+
+        this.setLastNumberToDisplay();
     }
     setDisplayDateTime() {
         this.displayDate = this.currentDate.toLocaleDateString(this._locale, {
@@ -128,25 +153,73 @@ class CalcController {
         });
         this.displayTime = this.currentDate.toLocaleTimeString(this._locale);
     }
+    initKeyboard() {
+        document.addEventListener('keyup', e => {
+            switch(e.key) {
+                case 'Escape':
+                    this.clearAll();
+                    break;
+                case 'Backspace':
+                    this.clearEntry();
+                    break;
+                case '+':
+                case '-':
+                case '*':
+                case '/':
+                case '%':
+                    this.addOperation(e.key);
+                    break;
+                case 'Enter':
+                case '=':
+                    this.calc();
+                    break;
+                case '.':
+                case ',':
+                    this.addDot('.');
+                    break;
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    this.addOperation(parseInt(e.key));
+                    break;
+            }
+        })
+    }
     execBtn(value) {
         switch(value) {
             case 'ce':
+                this.clearEntry();
                 break;
             case 'c':
+                this.clearAll();
                 break;
             case 'soma':
+                this.addOperation('+');
                 break;
             case 'subtracao':
+                this.addOperation('-');
                 break;
             case 'divisao':
+                this.addOperation('/');
                 break;
             case 'multiplicacao':
+                this.addOperation('*');
                 break;
             case 'porcento':
+                this.addOperation('%');
                 break;
             case 'igual':
+                this.calc();
                 break;
             case 'ponto':
+                this.addDot();
                 break;
             case '0':
             case '1':
